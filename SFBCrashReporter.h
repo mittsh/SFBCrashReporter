@@ -14,5 +14,6 @@
 // Ensure that SFBCrashReporterCrashSubmissionURL is set to a string in either your application's Info.plist
 // or NSUserDefaults and call this
 + (void) checkForNewCrashes;
++ (void) checkForNewCrashesWithSubmissionURL:(NSURL*)submissionURL;
 
 @end

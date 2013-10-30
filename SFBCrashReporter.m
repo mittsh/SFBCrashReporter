@@ -13,16 +13,25 @@
 
 @implementation SFBCrashReporter
 
-+ (void) checkForNewCrashes
++ (void)checkForNewCrashes
 {
-	// If no URL is found for the submission, we can't do anything
-	NSString *crashSubmissionURLString = [[NSUserDefaults standardUserDefaults] stringForKey:@"SFBCrashReporterCrashSubmissionURL"];
-	if(!crashSubmissionURLString) {
-		crashSubmissionURLString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"SFBCrashReporterCrashSubmissionURL"];
-		if(!crashSubmissionURLString)
-			[NSException raise:@"Missing SFBCrashReporterCrashSubmissionURL" format:@"You must specify the URL for crash log submission as the SFBCrashReporterCrashSubmissionURL in either Info.plist or the user defaults!"];
-	}
+	[self checkForNewCrashesWithSubmissionURL:nil];
+}
 
++ (void) checkForNewCrashesWithSubmissionURL:(NSURL *)submissionURL
+{
+	NSString *crashSubmissionURLString = [submissionURL absoluteString];
+	// If no URL is passed, check the User Defaults
+	if (!crashSubmissionURLString) {
+		crashSubmissionURLString = [[NSUserDefaults standardUserDefaults] stringForKey:@"SFBCrashReporterCrashSubmissionURL"];
+		// If no URL is found for the submission, we can't do anything
+		if(!crashSubmissionURLString) {
+			crashSubmissionURLString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"SFBCrashReporterCrashSubmissionURL"];
+			if(!crashSubmissionURLString)
+				[NSException raise:@"Missing SFBCrashReporterCrashSubmissionURL" format:@"You must specify the URL for crash log submission as the SFBCrashReporterCrashSubmissionURL in either Info.plist or the user defaults!"];
+		}
+	}
+	
 	// Determine when the last crash was reported
 	NSDate *lastCrashReportDate = [[NSUserDefaults standardUserDefaults] objectForKey:@"SFBCrashReporterLastCrashReportDate"];
 	
@@ -56,7 +65,7 @@
 {
 	// Snow Leopard crash logs are located in ~/Library/Logs/DiagnosticReports
 	NSString *crashLogDirectory = @"Logs/DiagnosticReports";
-
+	
 	NSMutableArray *crashFolderPaths = [[NSMutableArray alloc] init];
 	
 	NSArray *libraryPaths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask | NSLocalDomainMask, YES);
@@ -70,16 +79,16 @@
 		}
 	}
 	
-	return crashFolderPaths;	
+	return crashFolderPaths;
 }
 
 + (NSArray *) crashLogPaths
 {
 	NSString *applicationName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
 	NSArray *crashLogDirectories = [self crashLogDirectories];
-
+	
 	NSMutableArray *paths = [[NSMutableArray alloc] init];
-
+	
 	for(NSString *crashLogDirectory in crashLogDirectories) {
 		NSString *file = nil;
 		NSDirectoryEnumerator *dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:crashLogDirectory];
